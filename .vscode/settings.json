@@ -1,0 +1,27 @@
+{
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "vscode.markdown-language-features"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "window.zoomLevel": 1,
+  // "prettier.semi": true,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true
+  },
+  "cSpell.words": ["builtins"]
+}
