@@ -1,27 +1,27 @@
 export type Airport = {
-  id: string;
+  id: number;
   name: string;
 };
 
 export type Route = {
-  id: string;
+  id: number;
   airports: Airport[];
 };
 
 export type Traveler = {
-  id: string;
+  id: number;
   name: string;
 };
 
 export type Ticket = {
-  id: string;
+  id: number;
   flight: Flight;
   traveler?: Traveler;
   price: number;
 };
 
 export type Flight = {
-  id: string;
+  id: number;
   capacity: number;
   route: Route;
   basePrice: number;

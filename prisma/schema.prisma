@@ -1,11 +1,47 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+model airport {
+  id   Int    @id @default(autoincrement()) @db.UnsignedInt
+  name String @unique(map: "airport_name_uindex") @db.VarChar(63)
+}
+
+model flight {
+  id         Int     @id @default(autoincrement())
+  capacity   Int     @db.UnsignedTinyInt
+  route_id   Int     @db.UnsignedInt
+  base_price Decimal @db.Decimal(10, 2)
+
+  @@index([route_id], map: "flight_route_id_index")
+}
+
+model route {
+  id              Int @id @default(autoincrement()) @db.UnsignedInt
+  from_airport_id Int @db.UnsignedInt
+  to_airport_id   Int @db.UnsignedInt
+
+  @@index([from_airport_id], map: "route_from_airport_id_index")
+}
+
+model ticket {
+  id          Int     @id @default(autoincrement()) @db.UnsignedInt
+  flight_id   Int     @db.UnsignedInt
+  traveler_id Int?    @db.UnsignedInt
+  price       Decimal @db.Decimal(10, 2)
+  uuid        String  @unique(map: "ticket_uuid_uindex") @db.VarChar(32)
+
+  @@index([flight_id], map: "ticket_flight_id_index")
+  @@index([traveler_id], map: "ticket_traveler_id_index")
+}
+
+model traveler {
+  id       Int    @id @default(autoincrement()) @db.UnsignedInt
+  name     String @db.VarChar(32)
+  route_id Int    @db.UnsignedInt
 }
