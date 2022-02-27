@@ -11,6 +11,7 @@ export type Route = {
 export type Traveler = {
   id: number;
   name: string;
+  route?: Route;
 };
 
 export type Ticket = {
@@ -25,4 +26,6 @@ export type Flight = {
   capacity: number;
   route: Route;
   basePrice: number;
+  currentTicketPrice?: number;
+  booked?: number;
 };

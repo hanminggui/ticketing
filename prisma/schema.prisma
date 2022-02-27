@@ -26,15 +26,15 @@ model route {
   from_airport_id Int @db.UnsignedInt
   to_airport_id   Int @db.UnsignedInt
 
-  @@index([from_airport_id], map: "route_from_airport_id_index")
+  @@unique([from_airport_id, to_airport_id], map: "route_from_airport_id_to_airport_id_uindex")
 }
 
 model ticket {
-  id          Int     @id @default(autoincrement()) @db.UnsignedInt
-  flight_id   Int     @db.UnsignedInt
-  traveler_id Int?    @db.UnsignedInt
-  price       Decimal @db.Decimal(10, 2)
-  uuid        String  @unique(map: "ticket_uuid_uindex") @db.VarChar(32)
+  id          Int      @id @default(autoincrement()) @db.UnsignedInt
+  uuid        String   @unique(map: "ticket_uuid_uindex") @db.Char(36)
+  flight_id   Int      @db.UnsignedInt
+  traveler_id Int?     @db.UnsignedInt
+  price       Decimal? @db.Decimal(10, 2)
 
   @@index([flight_id], map: "ticket_flight_id_index")
   @@index([traveler_id], map: "ticket_traveler_id_index")

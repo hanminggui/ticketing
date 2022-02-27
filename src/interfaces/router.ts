@@ -1,54 +1,66 @@
 import { Request, Response, Handler } from 'express';
 import Router from 'express-promise-router';
-import { graphqlHTTP } from 'express-graphql';
-import { buildSchema } from 'graphql';
-import { createTicketOrder } from '../services/ticketService';
-import { globalMiddles } from './middleware';
-import { sleep } from '../util';
-// TODO https://express-validator.github.io/docs/check-api.html
+import { body, validationResult } from 'express-validator';
+import { createTicketOrder, payTicketOrder, cancelTicketOrder } from '../services/ticketService';
+import { globalMiddles, validateParams } from './middleware';
+import { success, fail } from './response';
+
 const router = Router();
 
-router.use((err: Error, req: Request, res: Response, next: Handler) => {
-  res.status(403).send(err.message);
-});
 if (globalMiddles.length) {
   router.use(globalMiddles);
 }
 
-router.get('/', (req: Request, res: Response) => {
-  res.send('Hello World!');
-});
+router.post(
+  '/createTicketOrder',
+  [body('travelerId').isNumeric(), validateParams],
 
-router.get('/timeout', async (req: Request, res: Response) => {
-  await sleep(10);
-});
-
-router.post('/createTicketOrder', async (req: Request, res: Response) => {
-  const { travelerId, ticketId } = req.body;
-  const success = await createTicketOrder(travelerId, ticketId);
-  res.json({ success });
-});
-
-// root 提供所有 API 入口端点相应的解析器函数
-const root = {
-  hello: () => {
-    return 'Hello world!';
-  },
-};
-
-const schema = buildSchema(`
-type Query {
-  hello: String
-}
-`);
-
-router.use(
-  '/graphql',
-  graphqlHTTP({
-    schema,
-    rootValue: root,
-    graphiql: true,
-  })
+  async (req: Request, res: Response) => {
+    const { travelerId, flightId } = req.body;
+    const data = await createTicketOrder(travelerId, flightId);
+    res.json(success(data));
+  }
 );
+
+router.post(
+  '/payTicketOrder',
+  [body('travelerId').isNumeric(), validateParams],
+
+  async (req: Request, res: Response) => {
+    const { travelerId, ticketId } = req.body;
+    const data = await payTicketOrder(travelerId, ticketId);
+    res.json(success(data));
+  }
+);
+
+router.post(
+  '/cancelTicketOrder',
+  [body('travelerId').isNumeric(), validateParams],
+
+  async (req: Request, res: Response) => {
+    const { travelerId, ticketId } = req.body;
+    const data = await cancelTicketOrder(travelerId, ticketId);
+    res.json(success(data));
+  }
+);
+
+// router.get(
+//   '/flightList',
+//   [body('travelerId').isNumeric(), validateParams],
+
+//   async (req: Request, res: Response) => {
+//     console.log(1);
+//   }
+// );
+
+// handle error
+router.use((err: Error, req: Request, res: Response, _: Handler): void => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.json(fail(400, err, errors.array()));
+  } else {
+    res.json(fail(500, err));
+  }
+});
 
 export default router;

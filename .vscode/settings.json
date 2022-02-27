@@ -23,5 +23,5 @@
     "**/node_modules": true,
     "**/dist": true
   },
-  "cSpell.words": ["builtins"]
+  "cSpell.words": ["builtins", "sleepms"]
 }

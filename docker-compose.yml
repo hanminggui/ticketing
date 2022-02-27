@@ -1,0 +1,60 @@
+version: '3'
+
+services:
+  redis:
+    image: redis:latest
+    container_name: ticketing-redis
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - ticketing
+    volumes:
+      - ./volumes/redis/redis.conf:/usr/local/etc/redis/redis.conf:rw
+      - ./volumes/redis/data:/data:rw
+    command: /bin/bash -c "redis-server /usr/local/etc/redis/redis.conf"
+
+  mysql:
+    image: mysql:8.0.14
+    container_name: ticketing-mysql
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: 1q2w3e4r5t
+      MYSQL_USER: ticketing
+      MYSQL_PASSWORD: 1q2w3e4r5t
+      MYSQL_DATABASE: ticketing
+    ports:
+      - 3306:3306
+    networks:
+      - ticketing
+    volumes:
+      - ./volumes/mysql/data/:/var/lib/mysql/
+      - ./volumes/mysql/conf/:/etc/mysql/conf.d/
+    command:
+      # 将mysql8.0默认密码策略 修改为 原先 策略 (mysql8.0对其默认策略做了更改 会导致密码无法匹配)
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+
+  server:
+    deploy:
+      replicas: 4
+    build:
+      context: ./
+      dockerfile: ./dockerfile
+    container_name: ticketing-server
+    restart: always
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3000:3000
+    networks:
+      - ticketing
+    depends_on:
+      - mysql
+      - redis
+
+networks:
+  ticketing:
+    external: true

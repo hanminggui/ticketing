@@ -1,3 +1,9 @@
 import runInterfaceServer from './interfaces/server';
 
-runInterfaceServer();
+async function main() {
+  // TODO initData()
+  // TODO load data
+  runInterfaceServer();
+}
+
+main();
