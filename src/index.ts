@@ -1,8 +1,10 @@
 import runInterfaceServer from './interfaces/server';
+import { generateData } from './persistence/generateData';
 
 async function main() {
-  // TODO initData()
-  // TODO load data
+  if (process.env.NODE_ENV === 'production') {
+    await generateData();
+  }
   runInterfaceServer();
 }
 

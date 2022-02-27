@@ -12,11 +12,12 @@
     "esModuleInterop": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedParameters": true,
-    "noEmit": true,
     "skipLibCheck": true,
     "rootDir": "src",
     "baseUrl": ".",
-    "allowJs": true
+    "outDir": "dist",
+    "allowJs": true,
+    "noEmit": false
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"],
