@@ -6,6 +6,7 @@ module.exports = {
     'import/extensions': 'off',
     'no-use-before-define': 'off',
     '@typescript-eslint/no-use-before-define': ['error', { ignoreTypeReferences: true }],
+    "import/no-extraneous-dependencies": ["error", { devDependencies: true }],
     'no-prototype-builtins': 'off',
     'import/prefer-default-export': 'off',
     'no-console': 'off'

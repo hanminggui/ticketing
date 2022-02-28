@@ -1,4 +1,13 @@
+# dev
 node_modules
+
+# build
 dist
-volumes/redis/data/*
-volumes/mysql/data/*
+
+# tests
+/test
+/benchmarks/memory
+/coverage
+/.nyc_output
+/packages/graphql
+/benchmarks/memory
