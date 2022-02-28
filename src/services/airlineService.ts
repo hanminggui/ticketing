@@ -1,5 +1,8 @@
-import { random } from 'underscore';
+import { random, min } from 'underscore';
 import { sleepms } from '../util';
+
+const MIN_DELAY = 250;
+const MAX_DELAY = 3000;
 
 /**
  * 模拟 航司系统订票接口
@@ -7,8 +10,13 @@ import { sleepms } from '../util';
  * @returns 请求结果 成功 | 失败
  */
 async function bookTicket(): Promise<boolean> {
-  await sleepms(random(250, 3000));
+  await sleepms(random(MIN_DELAY, MAX_DELAY));
   return random(10) > 1;
+}
+
+async function timeout(timeoutMs: number): Promise<boolean> {
+  await sleepms(timeoutMs);
+  return false;
 }
 
 /**
@@ -22,7 +30,6 @@ export async function mustBookTicket(timeoutMs: number): Promise<boolean> {
     return false;
   }
   const beginTime = new Date().getTime();
-  const booked = await bookTicket();
-
+  const booked = await Promise.race([bookTicket(), timeout(min([timeoutMs, MAX_DELAY]))]);
   return booked || mustBookTicket(timeoutMs - (new Date().getTime() - beginTime));
 }

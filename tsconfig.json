@@ -20,7 +20,7 @@
     "noEmit": false
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "src/**/*.spec.ts"],
+  "exclude": ["node_modules"],
   "ts-node": {
     "transpileOnly": true,
     "compilerOptions": {
