@@ -14,8 +14,6 @@ export enum ErrorCode {
   TRAVELER_INVALID = 1301,
   TRAVELER_BOOKED = 1302,
 
-  booked = 1100,
-
   PAY_FAILED = 2001,
   AIRLINE_FAILED = 3001,
 }

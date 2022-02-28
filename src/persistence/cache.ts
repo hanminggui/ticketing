@@ -1,6 +1,6 @@
 import { createClient, RedisClientType, RedisClientOptions } from 'redis';
 
-import { Traveler, Ticket, Flight } from '../types';
+import { Traveler, Ticket, Flight, Route } from '../types';
 
 import database from './database';
 
@@ -26,52 +26,71 @@ class Redis {
     this.prefix = 'database:';
   }
 
-  private databaseIdKey(typeName: string, id: number): string {
-    return `${this.prefix}${typeName}:${id}`;
+  private databaseKey(name: string): string {
+    return `${this.prefix}${name}`;
   }
 
-  private async obtain(key: string, seconds: number, asyncGet: AsyncGet): Promise<string | null> {
+  private databaseIdKey(name: string, id: number): string {
+    return `${this.databaseKey(name)}:${id}`;
+  }
+
+  private async obtain(key: string, seconds: number, asyncGet: AsyncGet): Promise<unknown | null> {
     const v = await this.redisPool.get(key);
     if (!v) {
       const dbv = await asyncGet();
       const resetV = dbv ? JSON.stringify(dbv) : NIL;
       await this.redisPool.setEx(key, seconds, resetV);
-      return resetV;
+      return resetV === NIL ? null : JSON.parse(resetV);
     }
-    if (v === NIL) {
-      return null;
-    }
-    return v;
+    return v === NIL ? null : JSON.parse(v);
   }
 
   async getTravelerById(id: number): Promise<Traveler | null> {
     const key = this.databaseIdKey('getTravelerById', id);
     const v = await this.obtain(key, CACHE_10M, async () => database.getTravelerById(id));
 
-    if (!v) {
-      return null;
-    }
-    return JSON.parse(v as string);
+    return v ? (v as Traveler) : null;
+  }
+
+  async getRouteById(id: number): Promise<Route | null> {
+    const key = this.databaseIdKey('getRouteById', id);
+    const v = await this.obtain(key, CACHE_10M, async () => database.getRouteById(id));
+
+    return v ? (v as Route) : null;
+  }
+
+  async getRouteIds(): Promise<number[]> {
+    const key = this.databaseKey('getRouteIds');
+    const v = await this.obtain(key, CACHE_10M, async () => database.getRouteIds());
+
+    return v ? (v as number[]) : [];
   }
 
   async getFlightById(id: number): Promise<Flight | null> {
     const key = this.databaseIdKey('getFlightById', id);
     const v = await this.obtain(key, CACHE_10M, async () => database.getFlightById(id));
 
-    if (!v) {
-      return null;
-    }
-    return JSON.parse(v as string);
+    return v ? (v as Flight) : null;
   }
 
   async getTicketById(id: number): Promise<Ticket | null> {
     const key = this.databaseIdKey('getTicketById', id);
     const v = await this.obtain(key, CACHE_10M, async () => database.getTicketById(id));
 
-    if (!v) {
-      return null;
-    }
-    return JSON.parse(v as string);
+    return v ? (v as Ticket) : null;
+  }
+
+  async getFlightIdsByRouteId(id: number): Promise<number[]> {
+    const key = this.databaseIdKey('getFlightIdsByRouteId', id);
+    const v = await this.obtain(key, CACHE_10M, async () => database.getFlightIdsByRouteId(id));
+
+    return v ? (v as number[]) : [];
+  }
+
+  async refreshTicketById(id: number): Promise<void> {
+    const key = this.databaseIdKey('getTicketById', id);
+    await this.redisPool.del(key);
+    await this.getTicketById(id);
   }
 }
 

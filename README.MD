@@ -1,6 +1,18 @@
-# 领域驱动三层架构
 
-API层：src/api 
-Domain层: src/domain
-Repository层: src/repository
+# dev
+需要本地安装 redis、mysql
 
+## test
+```
+yarn test
+```
+## start
+```
+yarn start
+```
+
+# production
+```
+docker-compose build
+docker-compose up -d
+```

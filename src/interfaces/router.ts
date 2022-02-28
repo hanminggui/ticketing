@@ -1,7 +1,7 @@
 import { Request, Response, Handler } from 'express';
 import Router from 'express-promise-router';
-import { body, validationResult } from 'express-validator';
-import { createTicketOrder, payTicketOrder, cancelTicketOrder } from '../services/ticketService';
+import { body, check, validationResult } from 'express-validator';
+import * as ticketService from '../services/ticketService';
 import { globalMiddles, validateParams } from './middleware';
 import { success, fail } from './response';
 
@@ -11,50 +11,68 @@ if (globalMiddles.length) {
   router.use(globalMiddles);
 }
 
-router.post(
-  '/createTicketOrder',
-  [body('travelerId').isNumeric(), validateParams],
+router.get('/routes', async (req: Request, res: Response) => {
+  const data = await ticketService.getRouteList();
+  res.json(success(data));
+});
+
+router.get(
+  '/flightList',
+  [check('routeId').isNumeric(), validateParams],
 
   async (req: Request, res: Response) => {
-    const { travelerId, flightId } = req.body;
-    const data = await createTicketOrder(travelerId, flightId);
+    const { routeId } = req.query;
+    const data = await ticketService.getFlightList(Number(routeId));
+    res.json(success(data));
+  }
+);
+
+router.get(
+  '/flight/:id',
+  [check('id').isNumeric(), validateParams],
+
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const data = await ticketService.getFlightInfo(+id);
     res.json(success(data));
   }
 );
 
 router.post(
+  '/createTicketOrder',
+  [body('travelerId').isNumeric(), body('flightId').isNumeric(), validateParams],
+
+  async (req: Request, res: Response) => {
+    const { travelerId, flightId } = req.body;
+    const ticket = await ticketService.createTicketOrder(travelerId, flightId);
+    res.json(success(ticket));
+  }
+);
+
+router.post(
   '/payTicketOrder',
-  [body('travelerId').isNumeric(), validateParams],
+  [body('travelerId').isNumeric(), body('ticketId').isNumeric(), validateParams],
 
   async (req: Request, res: Response) => {
     const { travelerId, ticketId } = req.body;
-    const data = await payTicketOrder(travelerId, ticketId);
+    const data = await ticketService.payTicketOrder(travelerId, ticketId);
     res.json(success(data));
   }
 );
 
 router.post(
   '/cancelTicketOrder',
-  [body('travelerId').isNumeric(), validateParams],
+  [body('travelerId').isNumeric(), body('ticketId').isNumeric(), validateParams],
 
   async (req: Request, res: Response) => {
     const { travelerId, ticketId } = req.body;
-    const data = await cancelTicketOrder(travelerId, ticketId);
+    const data = await ticketService.cancelTicketOrder(travelerId, ticketId);
     res.json(success(data));
   }
 );
 
-// router.get(
-//   '/flightList',
-//   [body('travelerId').isNumeric(), validateParams],
-
-//   async (req: Request, res: Response) => {
-//     console.log(1);
-//   }
-// );
-
 // handle error
-router.use((err: Error, req: Request, res: Response, _: Handler): void => {
+router.use((err: Error, req: Request, res: Response, next: Handler): void => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     res.json(fail(400, err, errors.array()));

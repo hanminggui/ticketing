@@ -6,11 +6,13 @@ class Database {
   private prisma: PrismaClient;
 
   constructor() {
-    this.prisma = new PrismaClient({ log: ['warn', 'error'] });
+    // this.prisma = new PrismaClient({ log: ['warn', 'error'] });
+    this.prisma = new PrismaClient({ log: ['info', 'query', 'warn', 'error'] });
     this.prisma.$connect();
   }
 
   async getTravelerById(id: number): Promise<Traveler | null> {
+    if (!id) return null;
     const dbTraveler = await this.prisma.traveler.findFirst({ where: { id } });
     if (!dbTraveler) return null;
 
@@ -25,6 +27,7 @@ class Database {
   }
 
   async getRouteById(id: number): Promise<Route | null> {
+    if (!id) return null;
     const dbRoute = await this.prisma.route.findFirst({ where: { id } });
     if (!dbRoute) return null;
 
@@ -40,10 +43,12 @@ class Database {
   }
 
   async getAirportById(id: number): Promise<Airport | null> {
+    if (!id) return null;
     return this.prisma.airport.findFirst({ where: { id } });
   }
 
   async getFlightById(id: number): Promise<Flight | null> {
+    if (!id) return null;
     const dbFlight = await this.prisma.flight.findFirst({ where: { id } });
     if (!dbFlight) return null;
 
@@ -59,6 +64,7 @@ class Database {
   }
 
   async getTicketById(id: number): Promise<Ticket | null> {
+    if (!id) return null;
     const dbTicket = await this.prisma.ticket.findFirst({ where: { id } });
     if (!dbTicket) return null;
 
@@ -102,6 +108,29 @@ class Database {
         flight_id: flightId,
         traveler_id: null,
       },
+      select: {
+        id: true,
+      },
+    });
+
+    return _.pluck(rows, 'id');
+  }
+
+  async getFlightIdsByRouteId(routeId: number): Promise<number[]> {
+    const rows = await this.prisma.flight.findMany({
+      where: {
+        route_id: routeId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return _.pluck(rows, 'id');
+  }
+
+  async getRouteIds(): Promise<number[]> {
+    const rows = await this.prisma.route.findMany({
       select: {
         id: true,
       },

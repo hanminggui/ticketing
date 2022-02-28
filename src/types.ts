@@ -26,6 +26,7 @@ export type Flight = {
   capacity: number;
   route: Route;
   basePrice: number;
-  currentTicketPrice?: number;
   booked?: number;
+  unbooked?: number;
+  currentTicketPrice?: number;
 };

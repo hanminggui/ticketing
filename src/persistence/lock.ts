@@ -19,11 +19,11 @@ class Lock {
   }
 
   private lockTravelerKey(id: number): string {
-    return `${this.prefix}:travelerId:${id}`;
+    return `${this.prefix}travelerId:${id}`;
   }
 
   private lockTicketKey(id: number): string {
-    return `${this.prefix}:ticketId:${id}`;
+    return `${this.prefix}ticketId:${id}`;
   }
 
   private async lock(key: string, v: string, seconds: number): Promise<boolean> {
