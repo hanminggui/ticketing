@@ -7,17 +7,18 @@ import { success, fail } from './response';
 import { TicketService } from '../services/ticketService';
 import { FakeAirlineService } from '../services/airlineService';
 import { FakePayService } from '../services/payService';
+import storage from '../persistence/storage';
 import queue from '../persistence/queue';
 import lock from '../persistence/lock';
-import storage from '../persistence/storage';
 
 const router = Router();
+
 const ticketService = new TicketService({
-  airline: new FakeAirlineService(250, 3000, 20),
-  pay: new FakePayService(250, 3000, 10),
+  airlineService: new FakeAirlineService(250, 3000, 20),
+  payService: new FakePayService(250, 3000, 10),
+  storage,
   queue,
   lock,
-  storage,
 });
 
 if (globalMiddles.length) {
