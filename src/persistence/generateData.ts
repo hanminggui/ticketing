@@ -1,8 +1,8 @@
 import _ from 'underscore';
 import { PrismaClient, airport, route, flight } from '@prisma/client';
 import { uuid } from '../util';
-import { unbookedTicketQueue } from './queue';
-import database from './database';
+import queue from './queue';
+import storage from './storage';
 
 // 初始化数据脚本
 
@@ -116,8 +116,8 @@ async function generateAirPorts() {
 
 // 初始化未预定机票延时队列
 export async function initUnbookedTickets(flightId: number): Promise<void> {
-  const ids = await database.getUnbookedTicketIds(flightId);
-  await unbookedTicketQueue.pushList(flightId, ids);
+  const ids = await storage.getUnbookedTicketIds(flightId);
+  await queue.pushList(flightId, ids);
 }
 
 export async function generateData() {

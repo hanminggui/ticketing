@@ -1,9 +1,10 @@
 import { createClient, RedisClientType, RedisClientOptions } from 'redis';
 import { Ticket } from '../types';
+import { Lock } from './index';
 
 // 封装分布式锁相关逻辑 用redis实现 单独封装是为了替换实现时不修改service业务逻辑
 
-class Lock {
+class RedisLock implements Lock {
   private redisPool: RedisClientType;
 
   private prefix: string;
@@ -97,7 +98,7 @@ class Lock {
   }
 }
 
-const lock = new Lock({
+const lock = new RedisLock({
   url: process.env.REDIS_URL,
   password: process.env.REDIS_PASSWORD,
   database: 1,

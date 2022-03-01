@@ -1,8 +1,8 @@
 import { createClient, RedisClientType, RedisClientOptions } from 'redis';
+import { Queue } from './index';
 
 // 封装消息队列相关逻辑 用redis实现延时队列 单独封装是为了替换实现时不修改service业务逻辑
-
-class Queue {
+class RedisQueue implements Queue {
   private redisPool: RedisClientType;
 
   private prefix: string;
@@ -68,7 +68,7 @@ class Queue {
   }
 }
 
-export const unbookedTicketQueue = new Queue(
+const queue = new RedisQueue(
   {
     url: process.env.REDIS_URL,
     password: process.env.REDIS_PASSWORD,
@@ -76,3 +76,5 @@ export const unbookedTicketQueue = new Queue(
   },
   'unbookedTicket'
 );
+
+export default queue;

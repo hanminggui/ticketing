@@ -1,11 +1,24 @@
 import { Request, Response, Handler } from 'express';
 import Router from 'express-promise-router';
 import { body, check, validationResult } from 'express-validator';
-import * as ticketService from '../services/ticketService';
 import { globalMiddles, validateParams } from './middleware';
 import { success, fail } from './response';
 
+import { TicketService } from '../services/ticketService';
+import { FakeAirlineService } from '../services/airlineService';
+import { FakePayService } from '../services/payService';
+import queue from '../persistence/queue';
+import lock from '../persistence/lock';
+import storage from '../persistence/storage';
+
 const router = Router();
+const ticketService = new TicketService({
+  airline: new FakeAirlineService(250, 3000, 20),
+  pay: new FakePayService(250, 3000, 10),
+  queue,
+  lock,
+  storage,
+});
 
 if (globalMiddles.length) {
   router.use(globalMiddles);
