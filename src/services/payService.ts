@@ -17,7 +17,7 @@ export class FakePayService {
   constructor(minDelay: number, maxDelay: number, failRate: number) {
     this.minDelay = minDelay;
     this.maxDelay = maxDelay;
-    this.failRate = max([min([failRate, 0]), 100]);
+    this.failRate = failRate;
   }
 
   /**
@@ -27,6 +27,6 @@ export class FakePayService {
    */
   async pay(): Promise<boolean> {
     await sleepms(random(this.minDelay, this.maxDelay));
-    return random(100) >= this.failRate;
+    return random(99) >= this.failRate;
   }
 }

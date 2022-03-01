@@ -2,7 +2,7 @@ import { createClient, RedisClientType, RedisClientOptions } from 'redis';
 import { Queue } from './index';
 
 // 封装消息队列相关逻辑 用redis实现延时队列 单独封装是为了替换实现时不修改service业务逻辑
-class RedisQueue implements Queue {
+export class RedisQueue implements Queue {
   private redisPool: RedisClientType;
 
   private prefix: string;

@@ -4,7 +4,7 @@ import { Queue, Lock, Storage } from '../persistence';
 import { Route, Flight, Ticket } from '../types';
 import { ServiceError, ErrorCode } from '../error';
 
-const currentTicketPrice = (flight: Flight) => +(flight.basePrice * (((flight.booked || 0) / flight.capacity) * 2 + 1)).toFixed(2);
+export const currentTicketPrice = (flight: Flight) => +(flight.basePrice * (((flight.booked || 0) / flight.capacity) * 2 + 1)).toFixed(2);
 
 type TicketServiceConfig = {
   airlineService: FakeAirlineService;
@@ -144,7 +144,7 @@ export class TicketService {
   // 1. 每个航班(Flight) 的机票(Ticket) 的总购买数量不能大于该航班 (Flight) 的capacity.
   // 1. 机票(Ticket)只能在同一时间被唯一持有该机票预定权的乘客(Traveler) 在预定时间过期(Holding Expiration) 内购买.
   async payTicketOrder(travelerId: number, ticketId: number): Promise<boolean> {
-    // TODO validate
+    // validate
     const traveler = await this.storage.getTravelerById(travelerId);
     if (!traveler) {
       throw new ServiceError(ErrorCode.TRAVELER_INVALID, 'invalid traveler');

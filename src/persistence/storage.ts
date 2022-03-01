@@ -10,7 +10,7 @@ interface AsyncGet {
   (): Promise<unknown>;
 }
 
-class RedisMysql implements Storage {
+export class RedisMysql implements Storage {
   private redisPool: RedisClientType;
 
   private prisma: PrismaClient;

@@ -4,7 +4,7 @@ import { Lock } from './index';
 
 // 封装分布式锁相关逻辑 用redis实现 单独封装是为了替换实现时不修改service业务逻辑
 
-class RedisLock implements Lock {
+export class RedisLock implements Lock {
   private redisPool: RedisClientType;
 
   private prefix: string;
