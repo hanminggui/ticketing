@@ -19,6 +19,7 @@ const ticketService = new TicketService({
   storage,
   queue,
   lock,
+  lockMs: 3 * 60 * 1000,
 });
 
 if (globalMiddles.length) {

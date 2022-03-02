@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import _ from 'underscore';
-import { FakePayService } from '../../../services/payService';
+import { FakePayService } from '../../services/payService';
 
 describe('FakePayService', () => {
   describe('#pay()', () => {

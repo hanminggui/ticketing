@@ -12,7 +12,7 @@
     "test": "mocha -r ts-node/register src/test/**/*.spec.ts --exit --timeout 50000",
     "test:docker:up": "docker-compose -f integration/docker-compose.yml up -d",
     "test:docker:down": "docker-compose -f integration/docker-compose.yml down",
-    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "coverage": "yarn nyc --reporter lcov yarn test",
     "start": "nodemon --watch \"*.ts\" --exec \"ts-node\" ./src/index.ts",
     "init:data": "ts-node ./src/init.ts",
     "db:pull": "npx prisma db pull",

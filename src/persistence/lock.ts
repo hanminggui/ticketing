@@ -1,6 +1,6 @@
 import { createClient, RedisClientType, RedisClientOptions } from 'redis';
 import { Ticket } from '../types';
-import { Lock } from './index';
+import { Lock, Rollback } from './index';
 
 // 封装分布式锁相关逻辑 用redis实现 单独封装是为了替换实现时不修改service业务逻辑
 
@@ -27,12 +27,12 @@ export class RedisLock implements Lock {
     return `${this.prefix}ticketId:${id}`;
   }
 
-  private async lock(key: string, v: string, seconds: number): Promise<boolean> {
+  private async lock(key: string, v: string, unlockTimestamp: number): Promise<boolean> {
     const locked = await this.redisPool.setNX(key, v);
     if (!locked) {
       return locked;
     }
-    await this.redisPool.expire(key, seconds);
+    await this.redisPool.pExpireAt(key, unlockTimestamp);
     return locked;
   }
 
@@ -42,9 +42,9 @@ export class RedisLock implements Lock {
    * @param ticket
    * @returns
    */
-  async lockTraveler(travelerId: number, ticket: Ticket): Promise<boolean> {
+  async lockTraveler(travelerId: number, ticket: Ticket, unlockTimestamp: number): Promise<boolean> {
     const travelerKey = this.lockTravelerKey(travelerId);
-    return this.lock(travelerKey, JSON.stringify(ticket), 180);
+    return this.lock(travelerKey, JSON.stringify(ticket), unlockTimestamp);
   }
 
   async getTravelerLockedTicket(travelerId: number): Promise<Ticket | null> {
@@ -79,9 +79,9 @@ export class RedisLock implements Lock {
    * @param ticketId
    * @returns
    */
-  async lockTicket(travelerId: number, ticketId: number): Promise<boolean> {
+  async lockTicket(travelerId: number, ticketId: number, unlockTimestamp: number): Promise<boolean> {
     const ticketKey = this.lockTicketKey(ticketId);
-    return this.lock(ticketKey, JSON.stringify(travelerId), 180);
+    return this.lock(ticketKey, JSON.stringify(travelerId), unlockTimestamp);
   }
 
   /**
@@ -95,6 +95,28 @@ export class RedisLock implements Lock {
     if (v && +v === travelerId) {
       await this.redisPool.del(key);
     }
+  }
+
+  async extendLockTime(travelerId: number, ticketId: number, unlockTimestamp: number): Promise<Rollback[]> {
+    const rollbacks: Rollback[] = [];
+    const ticketKey = this.lockTicketKey(ticketId);
+    const travelerKey = this.lockTravelerKey(travelerId);
+
+    const [ticketKeyPTTL, travelerKeyPTTL] = await Promise.all([this.redisPool.pTTL(ticketKey), this.redisPool.pTTL(travelerKey)]);
+
+    if (ticketKeyPTTL > 0) {
+      this.redisPool.pExpireAt(ticketKey, unlockTimestamp);
+      rollbacks.push(async () => {
+        this.redisPool.pExpireAt(ticketKey, new Date().getTime() + ticketKeyPTTL);
+      });
+    }
+    if (travelerKeyPTTL > 0) {
+      this.redisPool.pExpireAt(travelerKey, unlockTimestamp);
+      rollbacks.push(async () => {
+        this.redisPool.pExpireAt(travelerKey, new Date().getTime() + ticketKeyPTTL);
+      });
+    }
+    return rollbacks;
   }
 }
 

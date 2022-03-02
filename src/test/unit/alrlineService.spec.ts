@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import _ from 'underscore';
-import { FakeAirlineService } from '../../../services/airlineService';
+import { FakeAirlineService } from '../../services/airlineService';
 
 describe('FakeAirlineService', () => {
   describe('#mustBookTicket()', () => {
@@ -25,11 +25,11 @@ describe('FakeAirlineService', () => {
           const end = new Date().getTime();
           expect(end - begin).to.lt(2);
         });
-        it('1ms timeout use time < 3ms', async () => {
+        it('1ms timeout use time < 5ms', async () => {
           const begin = new Date().getTime();
           await airlineService.mustBookTicket(1);
           const end = new Date().getTime();
-          expect(end - begin).to.lt(3);
+          expect(end - begin).to.lt(5);
         });
       });
       describe('100% fail rate', () => {

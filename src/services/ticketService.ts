@@ -12,6 +12,7 @@ type TicketServiceConfig = {
   queue: Queue;
   lock: Lock;
   storage: Storage;
+  lockMs: number;
 };
 
 export class TicketService {
@@ -25,27 +26,30 @@ export class TicketService {
 
   storage: Storage;
 
+  lockMs: number;
+
   constructor(config: TicketServiceConfig) {
     this.airlineService = config.airlineService;
     this.payService = config.payService;
     this.queue = config.queue;
     this.lock = config.lock;
     this.storage = config.storage;
+    this.lockMs = config.lockMs;
   }
 
   // 从消息队列取未锁定机票 并加锁
-  private async lockTicket(travelerId: number, flightId: number): Promise<number> {
+  private async lockTicket(travelerId: number, flightId: number, unlockTimestamp: number): Promise<number> {
     const ticketId = await this.queue.pop(flightId);
     if (!ticketId) {
       throw new ServiceError(ErrorCode.FLIGHT_STOCK, 'The tickets are sold out');
     }
     // 尝试加票锁
-    const ticketLocked = await this.lock.lockTicket(travelerId, +ticketId);
+    const ticketLocked = await this.lock.lockTicket(travelerId, +ticketId, unlockTimestamp);
     if (ticketLocked) {
       await this.queue.push(flightId, ticketId, 180);
       return +ticketId;
     }
-    return this.lockTicket(travelerId, flightId);
+    return this.lockTicket(travelerId, flightId, unlockTimestamp);
   }
 
   // 释放机票，并重新放入消息队列
@@ -103,7 +107,8 @@ export class TicketService {
       throw new ServiceError(ErrorCode.FLIGHT_INVALID, 'invalid flight');
     }
 
-    const ticketId = await this.lockTicket(travelerId, flightId);
+    const unlockTimestamp = new Date().getTime() + this.lockMs;
+    const ticketId = await this.lockTicket(travelerId, flightId, unlockTimestamp);
 
     const rollback = async () => this.freeTicket(travelerId, flightId, ticketId);
 
@@ -117,7 +122,7 @@ export class TicketService {
     ticket.price = flight.currentTicketPrice || flight.basePrice;
 
     // 尝试加用户锁，检查用户是否已经预定其他票
-    const travelerLocked = await this.lock.lockTraveler(travelerId, ticket);
+    const travelerLocked = await this.lock.lockTraveler(travelerId, ticket, unlockTimestamp);
     if (!travelerLocked) {
       await rollback();
       // 用户持有，有效期内的锁 如果是相同航班，返回之前的票 否则不允许继续锁票
@@ -143,23 +148,34 @@ export class TicketService {
   // 1. 每个航班(Flight) 的机票(Ticket) 的总购买数量不能大于该航班 (Flight) 的capacity.
   // 1. 机票(Ticket)只能在同一时间被唯一持有该机票预定权的乘客(Traveler) 在预定时间过期(Holding Expiration) 内购买.
   async payTicketOrder(travelerId: number, ticketId: number): Promise<boolean> {
-    // validate
-    const traveler = await this.storage.getTravelerById(travelerId);
-    if (!traveler) {
-      throw new ServiceError(ErrorCode.TRAVELER_INVALID, 'invalid traveler');
-    }
+    //  尝试支付时延长锁过期时间，防止支付期间锁过期。支付验证失败后，还原锁过期时间
+
+    const lockRollbacks = await this.lock.extendLockTime(travelerId, ticketId, this.lockMs);
+    const rollback = async () => {
+      if (!lockRollbacks.length) return;
+      await Promise.all(lockRollbacks);
+    };
 
     const lockedTicket = await this.lock.getTravelerLockedTicket(travelerId);
     if (!lockedTicket) {
+      await rollback();
       throw new ServiceError(ErrorCode.TICKET_UNBOOKED, 'please book your ticket first');
     }
 
     if (lockedTicket.id !== ticketId) {
+      await rollback();
       throw new ServiceError(ErrorCode.TICKET_UNBOOKED, 'You have other unpaid ticket');
+    }
+
+    const traveler = await this.storage.getTravelerById(travelerId);
+    if (!traveler) {
+      await rollback();
+      throw new ServiceError(ErrorCode.TRAVELER_INVALID, 'invalid traveler');
     }
 
     const paySuccess = await this.payService.pay();
     if (!paySuccess) {
+      await rollback();
       throw new ServiceError(ErrorCode.PAY_FAILED, 'pay failed');
     }
 
@@ -197,8 +213,6 @@ export class TicketService {
 
     // update database ticket
     await this.storage.cancelTicketOrder(ticketId);
-    // await this.storage.refreshTicketById(ticketId);
-
     await this.freeTicket(travelerId, ticket.flight.id, ticketId);
 
     return true;

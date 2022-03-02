@@ -8,12 +8,16 @@ export interface Queue {
   count(uniqueId: number): Promise<number>;
 }
 
+export interface Rollback {
+  (): Promise<void>;
+}
 export interface Lock {
-  lockTraveler(travelerId: number, ticket: Ticket): Promise<boolean>;
-  getTravelerLockedTicket(travelerId: number): Promise<Ticket | null>;
+  lockTraveler(travelerId: number, ticket: Ticket, unlockTimestamp: number): Promise<boolean>;
   unlockTraveler(travelerId: number, ticketId: number): Promise<void>;
-  lockTicket(travelerId: number, ticketId: number): Promise<boolean>;
+  lockTicket(travelerId: number, ticketId: number, unlockTimestamp: number): Promise<boolean>;
   unlockTicket(travelerId: number, ticketId: number): Promise<void>;
+  getTravelerLockedTicket(travelerId: number): Promise<Ticket | null>;
+  extendLockTime(travelerId: number, ticketId: number, ms: number): Promise<Rollback[]>;
 }
 
 export interface Storage {
