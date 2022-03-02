@@ -56,7 +56,6 @@ export class TicketService {
   }
 
   async getFlightInfo(flightId: number): Promise<Flight | null> {
-    console.log(`getFlightInfo(${flightId})`);
     const flight = await this.storage.getFlightById(flightId);
     if (!flight) return flight;
 

@@ -23,5 +23,7 @@
     "**/node_modules": true,
     "**/dist": true
   },
-  "cSpell.words": ["builtins", "sleepms"]
+  "cSpell.words": ["builtins", "sleepms"],
+  "mochaExplorer.files": "src/**/*.spec.ts",
+  "mochaExplorer.require": "ts-node/register"
 }

@@ -6,7 +6,11 @@ describe('FakePayService', () => {
   describe('#pay()', () => {
     describe('0ms delay test fail rate', () => {
       describe('0% fail rate', () => {
-        const payService = new FakePayService(0, 0, 0);
+        let payService: FakePayService;
+        before(() => {
+          payService = new FakePayService(0, 0, 0);
+        });
+
         it('Promise.all pay() * 100 all return true', async () => {
           const results = await Promise.all(_.range(100).map(() => payService.pay()));
           expect(results.includes(false)).to.eq(false);
@@ -19,7 +23,11 @@ describe('FakePayService', () => {
         });
       });
       describe('100% fail rate', () => {
-        const payService = new FakePayService(0, 0, 100);
+        let payService: FakePayService;
+        before(() => {
+          payService = new FakePayService(0, 0, 100);
+        });
+
         it('Promise.all pay() * 100 all return false', async () => {
           const results = await Promise.all(_.range(100).map(() => payService.pay()));
           expect(results.includes(true)).to.eq(false);
@@ -32,7 +40,11 @@ describe('FakePayService', () => {
         });
       });
       describe('50% fail rate', () => {
-        const payService = new FakePayService(0, 0, 50);
+        let payService: FakePayService;
+        before(() => {
+          payService = new FakePayService(0, 0, 50);
+        });
+
         it('Promise.all pay() * 100 return has true and false', async () => {
           const results = await Promise.all(_.range(100).map(() => payService.pay()));
           expect(results.includes(true)).to.eq(true);
@@ -48,22 +60,30 @@ describe('FakePayService', () => {
     });
     describe('has delay. test used time', () => {
       describe('2ms-3ms delay. 10 fail rate', () => {
-        const payService = new FakePayService(2, 3, 10);
+        let payService: FakePayService;
+        before(() => {
+          payService = new FakePayService(2, 3, 10);
+        });
+
         it('Promise.all pay() * 100 return has true and false', async () => {
           const results = await Promise.all(_.range(100).map(() => payService.pay()));
           expect(results.includes(true)).to.eq(true);
           expect(results.includes(false)).to.eq(true);
         });
-        it('pay() used time between 2ms and 4ms', async () => {
+        it('pay() used time between 2ms and 5ms', async () => {
           const begin = new Date().getTime();
           await payService.pay();
           const end = new Date().getTime();
           expect(end - begin).to.gt(1);
-          expect(end - begin).to.lt(5);
+          expect(end - begin).to.lt(6);
         });
       });
       describe('250ms-3000ms delay. 10 fail rate', () => {
-        const payService = new FakePayService(250, 3000, 10);
+        let payService: FakePayService;
+        before(() => {
+          payService = new FakePayService(250, 3000, 10);
+        });
+
         it('Promise.race pay() * 5 used time between 250ms and 3000ms', async () => {
           const begin = new Date().getTime();
           await Promise.race(_.range(5).map(() => payService.pay()));
