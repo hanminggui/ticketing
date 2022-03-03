@@ -1,4 +1,4 @@
-import { random, min, max } from 'underscore';
+import { random } from 'underscore';
 import { sleepms } from '../util';
 
 export class FakePayService {

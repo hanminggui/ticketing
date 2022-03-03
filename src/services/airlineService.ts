@@ -1,4 +1,4 @@
-import { random, min, max } from 'underscore';
+import { random, min } from 'underscore';
 import { sleepms } from '../util';
 
 async function timeout(timeoutMs: number): Promise<boolean> {

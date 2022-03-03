@@ -21,14 +21,16 @@ export class RedisMysql implements Storage {
 
   constructor(config: RedisClientOptions) {
     console.log(`storage mysql Connecting`);
-    this.prisma = new PrismaClient({ log: ['info', 'query', 'warn', 'error'] });
+    this.prisma = new PrismaClient({ log: ['warn', 'error'] });
     this.prisma.$connect();
 
     console.log(`storage redis Connecting ${JSON.stringify(config)}`);
     this.redisPool = createClient(config);
     this.redisPool.connect();
     this.redisPool.on('connect', () => console.log('storage redis connected'));
-    this.redisPool.on('error', (err) => console.log('storage redis error', err));
+    this.redisPool.on('error', (err) => {
+      throw err;
+    });
 
     this.prefix = 'Storage:';
     this.nil = 'nil';

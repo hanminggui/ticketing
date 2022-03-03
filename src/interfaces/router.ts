@@ -26,7 +26,7 @@ if (globalMiddles.length) {
   router.use(globalMiddles);
 }
 
-router.get('/routes', async (req: Request, res: Response) => {
+router.get('/routes', async (_req: Request, res: Response) => {
   const data = await ticketService.getRouteList();
   res.json(success(data));
 });
@@ -87,7 +87,7 @@ router.post(
 );
 
 // handle error
-router.use((err: Error, req: Request, res: Response, next: Handler): void => {
+router.use((err: Error, req: Request, res: Response, _next: Handler): void => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     res.json(fail(400, err, errors.array()));
