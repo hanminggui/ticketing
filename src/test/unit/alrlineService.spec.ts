@@ -86,7 +86,6 @@ describe('FakeAirlineService', () => {
           const begin = new Date().getTime();
           await airlineService.mustBookTicket(3);
           const end = new Date().getTime();
-          console.log(end - begin);
           expect(end - begin).to.gt(1);
           expect(end - begin).to.lt(6);
         });

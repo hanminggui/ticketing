@@ -150,7 +150,7 @@ export class TicketService {
   async payTicketOrder(travelerId: number, ticketId: number): Promise<boolean> {
     //  尝试支付时延长锁过期时间，防止支付期间锁过期。支付验证失败后，还原锁过期时间
 
-    const lockRollbacks = await this.lock.extendLockTime(travelerId, ticketId, this.lockMs);
+    const lockRollbacks = await this.lock.extendLockTime(travelerId, ticketId, new Date().getTime() + this.lockMs);
     const rollback = async () => {
       if (!lockRollbacks.length) return;
       await Promise.all(lockRollbacks);

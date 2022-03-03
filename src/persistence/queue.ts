@@ -32,7 +32,6 @@ export class RedisQueue implements Queue {
 
     const message = messages[0];
     await this.redisPool.zRem(key, message);
-    console.log(`pop ${key} value: ${message}`);
     return message;
   }
 
@@ -41,7 +40,6 @@ export class RedisQueue implements Queue {
 
     const score = new Date().getTime() + delaySeconds * 1000;
     await this.redisPool.zAdd(key, { score, value: `${message}` });
-    console.log(`push ${key} value: ${message} score: ${score}`);
   }
 
   async pushList(uniqueId: number | string, messages: string[] | number[], delaySeconds = 0): Promise<void> {

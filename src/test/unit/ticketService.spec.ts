@@ -50,7 +50,6 @@ class TestPersistence implements Storage, Queue, Lock {
   }
 
   async push(uniqueId: string | number, message: string | number, delaySeconds?: number): Promise<void> {
-    console.log('call push');
     this.result = null;
   }
 
