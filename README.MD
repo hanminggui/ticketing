@@ -40,3 +40,5 @@ docker-compose up -d
 - - - payService 模拟第三方支付服务
 - - - ticketService 票务系统
 - - test 单元测试、E2E测试
+
+- 
